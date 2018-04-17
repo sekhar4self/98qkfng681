@@ -30,6 +30,9 @@ contract TicTacToe {
 			return "Please enter value in [0,8]";
 		}
 		if(msg.sender == player1) {
+            if (player1_has_moved) {
+                return "You have already placed the move";
+            }
 			player1_has_moved = true;
 			if(player2_has_moved == true) {
 				player1_has_moved = false;      //back to initial value for next moves
@@ -52,6 +55,9 @@ contract TicTacToe {
 				player_1_last_move = place;
 			}
         } else if (msg.sender == player2) {
+            if (player2_has_moved) {
+                return "You have already placed the move";
+            }
             player2_has_moved = true;
             if(player1_has_moved == true) {
                 player1_has_moved = false;      //back to initial value for next moves
