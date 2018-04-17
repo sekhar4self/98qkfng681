@@ -1,22 +1,27 @@
 pragma solidity ^0.4.19;
 contract TicTacToe {
-	uint[] board = new uint[](9);
+	uint[] matrix = new uint[](9);
 	address player1;
 	address player2;
 	bool private player1_has_moved;
 	bool private player2_has_moved;
 	uint player_1_last_move;
 	uint player_2_last_move;
+    bool game_started = false;
 
-	constructor() public{
+	function TicTacToe() public{
 		player1 = msg.sender;
 	}
 
 	function joinGame() public{
 		player2 = msg.sender;
+        game_started = true;
 	}
 
 	function makeMove(uint place) public returns (string){
+        if (game_started == false) {
+            return "Game not started";
+        }
 		uint winner = checkWinner();
 		if(winner > 0){
 			return "Game is already over";
@@ -27,30 +32,47 @@ contract TicTacToe {
 		if(msg.sender == player1) {
 			player1_has_moved = true;
 			if(player2_has_moved == true) {
-				player1_has_moved = false;
+				player1_has_moved = false;      //back to initial value for next moves
 				player2_has_moved = false;
+
+				//In case both players have made the same move, revert.
 				if (place == player_2_last_move) {
+					player_1_last_move = 100;       //back to initial value for next moves
+					player_2_last_move = 100;
 					return "Both players played same move. Reverting.";
 				}
-				player_1_last_move = 100; //back to initial value
+
+				//Update the matrix
+				matrix[player_2_last_move] = 2;
+				matrix[place] = 1;
+
+				player_1_last_move = 100;       //back to initial value for next moves
 				player_2_last_move = 100;
 			} else {
 				player_1_last_move = place;
 			}
-		} else if (msg.sender == player2) {
-			player2_has_moved = true;
-			if(player1_has_moved == true) {
-				player1_has_moved = false;
-				player2_has_moved = false;
-				if (place == player_1_last_move) {
-					return "Both players played same move. Reverting.";
-				}
-				player_1_last_move = 100; //back to initial value
-				player_2_last_move = 100;
-			} else {
-				player_2_last_move = place;
-			}
+        } else if (msg.sender == player2) {
+            player2_has_moved = true;
+            if(player1_has_moved == true) {
+                player1_has_moved = false;      //back to initial value for next moves
+                player2_has_moved = false;
 
+                //In case both players have made the same move, revert.
+                if (place == player_1_last_move) {
+                    player_1_last_move = 100;   //back to initial value for next moves
+                    player_2_last_move = 100;
+                    return "Both players played same move. Reverting.";
+                }
+
+                //Update the matrix
+                matrix[player_1_last_move] = 2;
+                matrix[place] = 1;
+
+                player_1_last_move = 100;       //back to initial value for next moves
+                player_2_last_move = 100;
+            } else {
+                player_2_last_move = place;
+            }
 		} else {
 			return "You are not part of the game";
 		}
@@ -64,40 +86,29 @@ contract TicTacToe {
 	// 3 4 5
 	// 6 7 8
 	function checkWinner() public constant returns (uint){
-		for(uint i =0; i < 8;i++){
+		for(uint i = 0; i < 8;i++){
 			uint[] memory b = tests[i];
-			if(board[b[0]] != 0 && board[b[0]] == board[b[1]] && board[b[0]] == board[b[2]]) return board[b[0]];
+			if(matrix[b[0]] != 0 && matrix[b[0]] == matrix[b[1]] && matrix[b[0]] == matrix[b[2]]) return matrix[b[0]];
 		}
-
-
 		return 0;
 	}
 
-	function current() public constant returns(string, string) {
+	function current() public constant returns(string, uint256[3], uint256[3], uint256[3]) {
 		string memory text = "No winner yet";
 		uint winner = checkWinner();
 		if(winner == 1){
-			text = "Winner is X";
+			text = "Winner is 1";
 		}
 		if (winner == 2){
-			text = "Winner is O";
+			text = "Winner is 2";
 		}
 
-
-		//bytes memory out = new bytes(11);
-		byte[] memory signs = new byte[](3);
-		signs[0] = "-";
-		signs[1] = "X";
-		signs[2] = "O";
-		//bytes(out)[3] = "|";
-		//bytes(out)[7] = "|";
-
-		for(uint i =0; i < 9;i++){
-			//  bytes(out)[i + i/3] = signs[board[i]];
-
-		}
-
-		return (text, "string(out)");
+		return (
+			text,
+			[matrix[0], matrix[1], matrix[2]],
+			[matrix[3], matrix[4], matrix[5]],
+			[matrix[6], matrix[7], matrix[8]]
+		);
 	}
 
 }
