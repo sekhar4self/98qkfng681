@@ -3,6 +3,10 @@ contract TicTacToe {
 	uint[] board = new uint[](9);
 	address player1;
 	address player2;
+	bool private player1_has_moved;
+	bool private player2_has_moved;
+	uint player_1_last_move;
+	uint player_2_last_move;
 
 	constructor() public{
 		player1 = msg.sender;
@@ -13,23 +17,43 @@ contract TicTacToe {
 	}
 
 	function makeMove(uint place) public returns (string){
-
 		uint winner = checkWinner();
 		if(winner > 0){
 			return "Game is already over";
 		}
-		if(msg.sender != player1 && msg.sender != player2) {
-			return "You are not part of the game";
-		}
-
 		if(place < 0 || place >= 9) {
 			return "Please enter value in [0,8]";
 		}
-		if(board[place] != 0) return "already occupied";
+		if(msg.sender == player1) {
+			player1_has_moved = true;
+			if(player2_has_moved == true) {
+				player1_has_moved = false;
+				player2_has_moved = false;
+				if (place == player_2_last_move) {
+					return "Both players played same move. Reverting.";
+				}
+				player_1_last_move = 100; //back to initial value
+				player_2_last_move = 100;
+			} else {
+				player_1_last_move = place;
+			}
+		} else if (msg.sender == player2) {
+			player2_has_moved = true;
+			if(player1_has_moved == true) {
+				player1_has_moved = false;
+				player2_has_moved = false;
+				if (place == player_1_last_move) {
+					return "Both players played same move. Reverting.";
+				}
+				player_1_last_move = 100; //back to initial value
+				player_2_last_move = 100;
+			} else {
+				player_2_last_move = place;
+			}
 
-		board[place] = start+1;
-		start = 1- start;
-
+		} else {
+			return "You are not part of the game";
+		}
 		return "OK";
 	}
 
